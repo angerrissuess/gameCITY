@@ -8,9 +8,10 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        allowedHosts: ['.onrender.com'],
       },
       preview: {
-        allowedHosts: true,
+        allowedHosts: ['.onrender.com'],
       },
       plugins: [react()],
       define: {
