@@ -1542,7 +1542,9 @@ const TrafficSystem = ({ grid }: { grid: Grid }) => {
     return roads;
   }, [grid]);
 
-  const carCount = Math.min(Math.floor(roadTiles.length * 0.15), 6);
+  const isMobile = window.innerWidth <= 768;
+  const maxCars = isMobile ? 3 : 6;
+  const carCount = Math.min(Math.floor(roadTiles.length * 0.15), maxCars);
   const carsRef = useRef<THREE.InstancedMesh>(null);
   const carsState = useRef<Float32Array>(new Float32Array(0)); 
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -1661,7 +1663,9 @@ const TrafficSystem = ({ grid }: { grid: Grid }) => {
 const clothesColors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#ffffff'];
 
 const PopulationSystem = ({ population, grid }: { population: number, grid: Grid }) => {
-    const agentCount = Math.min(Math.floor(population / 25), 25); 
+    const isMobile = window.innerWidth <= 768;
+    const maxAgents = isMobile ? 10 : 25;
+    const agentCount = Math.min(Math.floor(population / 25), maxAgents); 
     const meshRef = useRef<THREE.InstancedMesh>(null);
     
     // Find tiles where people can walk (Roads, Parks, empty ground)
@@ -1727,13 +1731,17 @@ const PopulationSystem = ({ population, grid }: { population: number, grid: Grid
             const dist = Math.sqrt(dx*dx + dy*dy);
 
             if (dist < 0.1) {
-                // Pick new random target from walkable
+                // Pick new target from walkable, preferring adjacent tiles to prevent walking through obstacles
                 if (walkableTiles.length > 0) {
-                    const tt = walkableTiles[Math.floor(Math.random() * walkableTiles.length)];
+                    const curTx = Math.round(tx);
+                    const curTy = Math.round(ty);
+                    const neighbors = walkableTiles.filter(t => 
+                        (Math.abs(t.x - curTx) <= 1 && Math.abs(t.y - curTy) <= 1) && !(t.x === curTx && t.y === curTy)
+                    );
+                    const validTargets = neighbors.length > 0 ? neighbors : walkableTiles;
+                    const tt = validTargets[Math.floor(Math.random() * validTargets.length)];
                     tx = tt.x + getRandomRange(-0.4, 0.4);
                     ty = tt.y + getRandomRange(-0.4, 0.4);
-                    agentsState.current[idx+2] = tx;
-                    agentsState.current[idx+3] = ty;
                 }
             } else {
                 x += (dx/dist) * speed;
@@ -1819,24 +1827,28 @@ const Bird = ({ position, speed, offset }: { position: [number, number, number],
 }
 
 const EnvironmentEffects = () => {
+    const isMobile = window.innerWidth <= 768;
     return (
         <group raycast={() => null}>
-             {/* Clouds */}
-            <Cloud position={[-12, 8, 4]} scale={1.5} speed={0.3} />
-            <Cloud position={[5, 9, -8]} scale={1.2} speed={0.5} />
-            <Cloud position={[15, 7, 10]} scale={1.8} speed={0.2} />
-            
-            {/* Birds */}
-            <group position={[0, 0, 0]} scale={0.8}>
-                <Bird position={[0, 0, 10]} speed={0.6} offset={0} />
-                <Bird position={[0, 0, 10]} speed={0.6} offset={1.2} />
-                <Bird position={[0, 0, 10]} speed={0.6} offset={2.5} />
-            </group>
+             {/* Clouds & Birds - disabled on mobile for performance */}
+             {!isMobile && (
+               <>
+                 <Cloud position={[-12, 8, 4]} scale={1.5} speed={0.3} />
+                 <Cloud position={[5, 9, -8]} scale={1.2} speed={0.5} />
+                 <Cloud position={[15, 7, 10]} scale={1.8} speed={0.2} />
+                 
+                 <group position={[0, 0, 0]} scale={0.8}>
+                     <Bird position={[0, 0, 10]} speed={0.6} offset={0} />
+                     <Bird position={[0, 0, 10]} speed={0.6} offset={1.2} />
+                     <Bird position={[0, 0, 10]} speed={0.6} offset={2.5} />
+                 </group>
+               </>
+             )}
 
-            {/* Huge Grass Base plane to cover to horizon */}
+            {/* Huge Grass Base plane to cover to horizon - slightly darker to frame the city */}
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.85, 0]} receiveShadow={false}>
                 <planeGeometry args={[GRID_SIZE * 50, GRID_SIZE * 50]} />
-                <meshStandardMaterial color="#10b981" roughness={1} metalness={0} />
+                <meshStandardMaterial color="#065f46" roughness={1} metalness={0} />
             </mesh>
         </group>
     )
@@ -1869,6 +1881,12 @@ const EnvironmentSystem = () => {
         if (ambientRef.current) ambientRef.current.intensity = THREE.MathUtils.lerp(0.2, 0.6, t);
 
         scene.background = targetSkyColor;
+        if (scene.fog) {
+            scene.fog.color.copy(targetSkyColor);
+        } else {
+            scene.fog = new THREE.Fog(targetSkyColor, 100, 190);
+        }
+        
         if (lightRef.current) lightRef.current.color.copy(targetLightColor);
     });
 
@@ -1896,23 +1914,23 @@ const CameraController = () => {
         const ctrl = controls as any;
         
         // Clamp target (panning constraints)
-        // Dynamically adjust panLimit based on zoom level: map edge is more noticeable when zoomed out
-        let panLimit = GRID_SIZE * 0.4;
+        // Stricter limits to prevent panning off the map into the infinite grass
+        let panLimit = GRID_SIZE * 0.35;
         
         if (camera instanceof THREE.OrthographicCamera) {
             const z = camera.zoom;
-            panLimit = THREE.MathUtils.mapLinear(z, 5, 100, GRID_SIZE * 0.1, GRID_SIZE * 0.45);
+            panLimit = THREE.MathUtils.mapLinear(z, 5, 60, GRID_SIZE * 0.1, GRID_SIZE * 0.35);
             
             // Re-clamp target based on dynamic panLimit
             ctrl.target.x = THREE.MathUtils.clamp(ctrl.target.x, -panLimit, panLimit);
             ctrl.target.z = THREE.MathUtils.clamp(ctrl.target.z, -panLimit, panLimit);
 
-            // Prevent tilting too low when zoomed out
+            // Prevent tilting too low
             if (z < 15) {
-                ctrl.maxPolarAngle = Math.PI / 3.5; // Stricter angle when zoomed out (top-down bias)
+                ctrl.maxPolarAngle = Math.PI / 3.5; 
             } else {
-                const t = Math.min((z - 15) / 65, 1);
-                ctrl.maxPolarAngle = THREE.MathUtils.lerp(Math.PI / 3.5, Math.PI / 2.5, t); // Even when zoomed in, don't allow too low
+                const t = Math.min((z - 15) / 45, 1);
+                ctrl.maxPolarAngle = THREE.MathUtils.lerp(Math.PI / 3.5, Math.PI / 2.8, t);
             }
         }
     });
@@ -1998,6 +2016,10 @@ const GroundInstances = React.memo(({ grid, hoveredTool }: { grid: Grid, hovered
         let topY = -0.3;
         let thickness = 0.5;
 
+        // Create grid effect when placing buildings
+        const isPlacementMode = hoveredTool !== null && hoveredTool !== BuildingType.BuyLand && hoveredTool !== BuildingType.None;
+        let scaleFactor = isPlacementMode ? 0.95 : 1;
+
         if (!tile.unlocked) {
            c = '#64748b'; topY = -0.4;
         } else if (isIndustrial) {
@@ -2012,18 +2034,29 @@ const GroundInstances = React.memo(({ grid, hoveredTool }: { grid: Grid, hovered
              }
            }
 
-           if (affectedCount === 0) {
-             c = '#22c55e'; // Safe green - won't affect any inhabitants
-           } else if (affectedCount <= 2) {
-             c = '#eab308'; // Warning yellow - low/moderate impact
+           if (tile.buildingType !== BuildingType.None) {
+             // Occupied tiles should look distinct/darker
+             c = '#475569';
+             topY = -0.32;
            } else {
-             c = '#ef4444'; // Danger red - high impact on resident happiness
+             if (affectedCount === 0) {
+               c = '#4ade80'; // Bright safe green
+             } else if (affectedCount <= 2) {
+               c = '#facc15'; // Bright warning yellow
+             } else {
+               c = '#f87171'; // Bright danger red
+             }
+             topY = -0.28;
            }
-           topY = -0.28;
         } else if (tile.buildingType === BuildingType.None) {
            const noise = getHash(x, y);
            c = noise > 0.7 ? '#059669' : noise > 0.3 ? '#10b981' : '#34d399';
            topY = -0.3 - noise * 0.1;
+           
+           if (isPlacementMode) {
+              c = '#4ade80'; // Highlight empty grid distinctly during generic placement too
+              topY = -0.28;
+           }
         } else if (tile.buildingType === BuildingType.Road) {
            c = '#374151'; topY = -0.29;
         } else {
@@ -2033,7 +2066,7 @@ const GroundInstances = React.memo(({ grid, hoveredTool }: { grid: Grid, hovered
         const centerY = topY - thickness/2;
         
         dummy.position.set(wx, centerY, wz);
-        dummy.scale.set(1, thickness, 1);
+        dummy.scale.set(scaleFactor, thickness, scaleFactor);
         dummy.updateMatrix();
         
         mesh.setMatrixAt(i, dummy.matrix);
@@ -2123,6 +2156,7 @@ const FloatingLabels = ({ texts }: { texts: FloatingTextData[] }) => {
 
 const IsoMap: React.FC<IsoMapProps> = ({ grid, onTileClick, hoveredTool, stats, floatingTexts = [] }) => {
   const [hoveredTile, setHoveredTile] = useState<{x: number, y: number} | null>(null);
+  const pointerDownPos = useRef<{x: number, y: number} | null>(null);
 
   const handleHover = useCallback((x: number, y: number) => {
     setHoveredTile({ x, y });
@@ -2190,8 +2224,8 @@ const IsoMap: React.FC<IsoMapProps> = ({ grid, onTileClick, hoveredTool, stats, 
           enableDamping={true}
           dampingFactor={0.05}
           minZoom={12}
-          maxZoom={100}
-          maxPolarAngle={Math.PI / 2.5}
+          maxZoom={typeof window !== 'undefined' && window.innerWidth <= 768 ? 45 : 70}
+          maxPolarAngle={Math.PI / 2.8}
           minPolarAngle={0.1}
           target={[0,-0.5,0]}
           touches={{
@@ -2242,7 +2276,16 @@ const IsoMap: React.FC<IsoMapProps> = ({ grid, onTileClick, hoveredTool, stats, 
                }
             }}
             onPointerOut={() => handleLeave()}
-            onClick={(e) => {
+            onPointerDown={(e) => {
+               pointerDownPos.current = { x: e.clientX, y: e.clientY };
+            }}
+            onPointerUp={(e) => {
+               if (!pointerDownPos.current) return;
+               const dist = Math.hypot(e.clientX - pointerDownPos.current.x, e.clientY - pointerDownPos.current.y);
+               pointerDownPos.current = null;
+               
+               if (dist > 10) return; // It was a drag, ignore click
+               
                e.stopPropagation();
                const originX = (GRID_SIZE - 1) / 2;
                const originZ = (GRID_SIZE - 1) / 2;

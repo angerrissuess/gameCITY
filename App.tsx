@@ -67,7 +67,7 @@ function App() {
       }
     }
     const baseExp = Math.max(0, unlockedCount - 1);
-    return Math.floor(500 * Math.pow(1.5, baseExp));
+    return Math.floor(500 * Math.pow(1.8, baseExp));
   }, [grid]);
 
   const dynamicCosts = useMemo(() => ({

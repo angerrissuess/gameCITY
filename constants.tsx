@@ -10,20 +10,20 @@ export const CHUNK_SIZE = 5;
 
 // Game Settings
 export const DAY_MS = 5000; // 1 in-game day = 5 real seconds
-export const INITIAL_MONEY = 3000;
+export const INITIAL_MONEY = 1500;
 
 export const EconomyConfig = {
   passiveSubsidy: 10,
   taxPerPerson: 1,
   moveInBonus: 5,
-  shopSmallIncome: 15,
-  shopLargeIncome: 50,
-  mallIncome: 150,
-  financialCenterIncome: 500,
-  factorySmallIncome: 25,
-  factoryLargeIncome: 80,
+  shopSmallIncome: 10,
+  shopLargeIncome: 30,
+  mallIncome: 100,
+  financialCenterIncome: 350,
+  factorySmallIncome: 20,
+  factoryLargeIncome: 70,
   chemicalPlantIncome: 250,
-  highTechFactoryIncome: 800,
+  highTechFactoryIncome: 1000,
   levelIncomeMultiplier: 0.05, // +5% per level
 };
 
@@ -42,9 +42,9 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.None]: {
     type: BuildingType.None,
     category: BuildingCategory.Infrastructure,
-    cost: 10, // Снос
+    cost: 25, // Снос
     name: 'Снести',
-    description: 'Очистить клетку ($10)',
+    description: 'Очистить клетку ($25)',
     color: '#ef4444',
     popGen: 0,
     incomeGen: 0,
@@ -66,7 +66,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.Road]: {
     type: BuildingType.Road,
     category: BuildingCategory.Infrastructure,
-    cost: 100,
+    cost: 10,
     name: 'Дорога',
     description: 'Связывает здания',
     color: '#374151',
@@ -90,7 +90,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.HouseMedium]: {
     type: BuildingType.HouseMedium,
     category: BuildingCategory.Residential,
-    cost: 100,
+    cost: 150,
     name: 'Средний дом',
     description: '+3 Жит/день. Макс: 15',
     color: '#ef4444',
@@ -102,7 +102,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.HouseLarge]: {
     type: BuildingType.HouseLarge,
     category: BuildingCategory.Residential,
-    cost: 150,
+    cost: 600,
     name: 'Большой дом',
     description: '+6 Жит/день. Макс: 30',
     color: '#b91c1c',
@@ -126,7 +126,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.ShopLarge]: {
     type: BuildingType.ShopLarge,
     category: BuildingCategory.Commercial,
-    cost: 400,
+    cost: 1000,
     name: 'Супермаркет',
     description: `+$${EconomyConfig.shopLargeIncome}/день`,
     color: '#2563eb',
@@ -138,7 +138,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.Mall]: {
     type: BuildingType.Mall,
     category: BuildingCategory.Commercial,
-    cost: 1200,
+    cost: 8000,
     name: 'Молл',
     description: `+$${EconomyConfig.mallIncome}/день`,
     color: '#1d4ed8',
@@ -150,7 +150,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.FinancialCenter]: {
     type: BuildingType.FinancialCenter,
     category: BuildingCategory.Commercial,
-    cost: 3500,
+    cost: 40000,
     name: 'Финансовый центр',
     description: `+$${EconomyConfig.financialCenterIncome}/день`,
     color: '#1e3a8a',
@@ -162,7 +162,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.FactorySmall]: {
     type: BuildingType.FactorySmall,
     category: BuildingCategory.Industrial,
-    cost: 250,
+    cost: 200,
     name: 'Фабрика',
     description: `+$${EconomyConfig.factorySmallIncome}/день, -Счастье`,
     color: '#facc15',
@@ -174,7 +174,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.FactoryLarge]: {
     type: BuildingType.FactoryLarge,
     category: BuildingCategory.Industrial,
-    cost: 1000,
+    cost: 2000,
     name: 'Огромный Завод',
     description: `+$${EconomyConfig.factoryLargeIncome}/день, -Счастье`,
     color: '#b45309',
@@ -186,7 +186,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.ChemicalPlant]: {
     type: BuildingType.ChemicalPlant,
     category: BuildingCategory.Industrial,
-    cost: 2500,
+    cost: 15000,
     name: 'Химзавод',
     description: `+$${EconomyConfig.chemicalPlantIncome}/день, --Счастье`,
     color: '#78350f',
@@ -198,7 +198,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.HighTechFactory]: {
     type: BuildingType.HighTechFactory,
     category: BuildingCategory.Industrial,
-    cost: 6000,
+    cost: 80000,
     name: 'Нанотех Комплекс',
     description: `+$${EconomyConfig.highTechFactoryIncome}/день, -Счастье`,
     color: '#451a03',
@@ -222,7 +222,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.ParkLarge]: {
     type: BuildingType.ParkLarge,
     category: BuildingCategory.Decorations,
-    cost: 400,
+    cost: 800,
     name: 'Городской Парк',
     description: 'Счастье++++',
     color: '#16a34a',
@@ -234,7 +234,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.AquaPark]: {
     type: BuildingType.AquaPark,
     category: BuildingCategory.Decorations,
-    cost: 1500,
+    cost: 5000,
     name: 'Аквапарк',
     description: 'Счастье+++++',
     color: '#22d3ee',
@@ -246,7 +246,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
   [BuildingType.AmusementPark]: {
     type: BuildingType.AmusementPark,
     category: BuildingCategory.Decorations,
-    cost: 3000,
+    cost: 20000,
     name: 'Парк аттракционов',
     description: 'Счастье++++++',
     color: '#ec4899',

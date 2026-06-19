@@ -429,15 +429,15 @@ const UIOverlay: React.FC<UIOverlayProps & { dynamicCosts?: Record<string, numbe
         </Rnd>
       )}
 
-      {/* Global Cancel Tool Button (Bottom Left) */}
+      {/* Global Cancel Tool Button */}
       {selectedTool !== null && (
-        <div className="absolute bottom-4 left-4 pointer-events-auto mb-safe transition-all animate-fade-in">
+        <div className="absolute bottom-[110px] md:bottom-4 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-4 z-50 pointer-events-auto mb-safe transition-all animate-fade-in">
           <button 
             onClick={() => onSelectTool(null)} 
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-3 py-2 md:px-4 md:py-3 rounded-2xl shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400 backdrop-blur-md font-bold text-xs md:text-sm"
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2 md:px-4 md:py-3 rounded-2xl shadow-[0_0_20px_rgba(220,38,38,0.8)] border-2 border-red-400 backdrop-blur-md font-bold text-sm"
           >
             <X size={18} />
-            <span className="hidden sm:inline">Отменить выбор</span>
+            <span>Отменить выбор</span>
           </button>
         </div>
       )}
